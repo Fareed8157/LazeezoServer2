@@ -11,6 +11,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -29,12 +30,18 @@ import android.widget.Toast;
 import com.example.fareed.lazeezoserver.Common.Common;
 import com.example.fareed.lazeezoserver.Interface.ItemClickListener;
 import com.example.fareed.lazeezoserver.Model.Category;
+import com.example.fareed.lazeezoserver.Model.Token;
 import com.example.fareed.lazeezoserver.ViewHolder.MenuViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -108,6 +115,15 @@ public class Home extends AppCompatActivity
         recycler_menu.setLayoutManager(layoutManager);
 
         loadMenu();
+
+        updateToken(FirebaseInstanceId.getInstance().getToken());
+    }
+
+    private void updateToken(String token) {
+        FirebaseDatabase db=FirebaseDatabase.getInstance();
+        DatabaseReference tokens=db.getReference("Tokens");
+        Token data=new Token(token,true);
+        tokens.child(Common.currentUser.getPhone()).setValue(data);
     }
 
     private void saveImgInDb() {
@@ -230,6 +246,23 @@ public class Home extends AppCompatActivity
     }
 
     private void removeCatg(String key) {
+
+        DatabaseReference foods=database.getReference("Foods");
+        Query foodInCategory=foods.orderByChild("menuId").equalTo(key);
+
+        foodInCategory.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot postDatasnapshot :dataSnapshot.getChildren()){
+                    postDatasnapshot.getRef().removeValue();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
         category.child(key).removeValue();
         Snackbar.make(drawer,"Item Removed Permanently",Snackbar.LENGTH_SHORT).show();
     }
