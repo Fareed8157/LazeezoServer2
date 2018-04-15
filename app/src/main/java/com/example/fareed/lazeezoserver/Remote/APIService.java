@@ -1,6 +1,7 @@
 package com.example.fareed.lazeezoserver.Remote;
 
 
+import com.example.fareed.lazeezoserver.Model.DataMessage;
 import com.example.fareed.lazeezoserver.Model.MyResponse;
 import com.example.fareed.lazeezoserver.Model.Sender;
 
@@ -22,5 +23,5 @@ public interface APIService {
     )
 
     @POST("fcm/send")
-    Call<MyResponse> sendNotification(@Body Sender body);
+    Call<MyResponse> sendNotification(@Body DataMessage body);
 }

@@ -22,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
@@ -33,6 +34,7 @@ import com.example.fareed.lazeezoserver.Model.Category;
 import com.example.fareed.lazeezoserver.Model.Token;
 import com.example.fareed.lazeezoserver.ViewHolder.MenuViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -359,9 +361,12 @@ public class Home extends AppCompatActivity
     }
 
     private void loadMenu() {
-        adapter=new FirebaseRecyclerAdapter<Category, MenuViewHolder>(Category.class,R.layout.menu_item,MenuViewHolder.class,category) {
+        FirebaseRecyclerOptions<Category> options =new FirebaseRecyclerOptions.Builder<Category>()
+                .setQuery(category,Category.class)
+                .build();
+        adapter=new FirebaseRecyclerAdapter<Category, MenuViewHolder>(options) {
             @Override
-            protected void populateViewHolder(MenuViewHolder viewHolder, Category model, int position) {
+            protected void onBindViewHolder(@NonNull MenuViewHolder viewHolder, int position, @NonNull Category model) {
                 viewHolder.txtMenuName.setText(model.getName());
                 Picasso.with(getBaseContext()).load(model.getImage()).into(viewHolder.imageView);
                 final Category clickItem=model;
@@ -375,9 +380,50 @@ public class Home extends AppCompatActivity
                     }
                 });
             }
+
+            @Override
+            public MenuViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+                View view= LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.menu_item,parent,false);
+                return new MenuViewHolder(view);
+            }
         };
-        adapter.notifyDataSetChanged();
+
+//        adapter=new FirebaseRecyclerAdapter<Category, MenuViewHolder>(Category.class,R.layout.menu_item,MenuViewHolder.class,category) {
+//            @Override
+//            protected void populateViewHolder(MenuViewHolder viewHolder, Category model, int position) {
+//                viewHolder.txtMenuName.setText(model.getName());
+//                Picasso.with(getBaseContext()).load(model.getImage()).into(viewHolder.imageView);
+//                final Category clickItem=model;
+//                viewHolder.setItemClickListener(new ItemClickListener() {
+//                    @Override
+//                    public void onClick(View view, int position, boolean isLongClick) {
+//                        //we will send categoryId from here
+//                        Intent categoryId=new Intent(Home.this,FoodList.class);
+//                        categoryId.putExtra("CategoryId",adapter.getRef(position).getKey());
+//                        startActivity(categoryId);
+//                    }
+//                });
+//            }
+//        };
+        adapter.startListening();
         recycler_menu.setAdapter(adapter);
+        recycler_menu.getAdapter().notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        adapter.stopListening();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(adapter!=null){
+            adapter.startListening();
+        }
     }
 
     @Override
@@ -430,6 +476,12 @@ public class Home extends AppCompatActivity
 //            Intent signIn=new Intent(Home.this,SignIn.class);
 //            signIn.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 //            startActivity(signIn);
+        }
+        else if (id == R.id.nav_message) {
+            startActivity(new Intent(Home.this,SendMessage.class));
+        }
+        else if (id == R.id.nav_shipper) {
+            startActivity(new Intent(Home.this,ShippManagement.class));
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

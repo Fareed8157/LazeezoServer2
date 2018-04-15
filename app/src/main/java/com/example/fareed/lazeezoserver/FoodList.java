@@ -9,11 +9,13 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.RelativeLayout;
@@ -23,13 +25,16 @@ import com.example.fareed.lazeezoserver.Common.Common;
 import com.example.fareed.lazeezoserver.Interface.ItemClickListener;
 import com.example.fareed.lazeezoserver.Model.Food;
 import com.example.fareed.lazeezoserver.ViewHolder.FoodViewHolder;
+import com.example.fareed.lazeezoserver.ViewHolder.MenuViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
@@ -46,7 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class FoodList extends SwipeBackActivity {
+public class FoodList extends AppCompatActivity {
 
 
 
@@ -79,12 +84,10 @@ public class FoodList extends SwipeBackActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_food_list);
-        setDragEdge(SwipeBackLayout.DragEdge.LEFT);
+        //setDragEdge(SwipeBackLayout.DragEdge.LEFT);
 
         relativeLayout=(RelativeLayout)findViewById(R.id.rootLayout);
         floatingActionButton=(FloatingActionButton)findViewById(R.id.fab);
-
-
 
         //Initialize Database
         database=FirebaseDatabase.getInstance();
@@ -113,56 +116,6 @@ public class FoodList extends SwipeBackActivity {
         if(!categoryId.isEmpty() && categoryId!=null){
             loadList(categoryId);
         }
-
-//        materialSearchBar=(MaterialSearchBar)findViewById(R.id.searchBar);
-//        materialSearchBar.setHint("Search Food");
-       // loadSuggest();
-
-//        materialSearchBar.setLastSuggestions(suggestList);
-//        materialSearchBar.setCardViewElevation(10);
-//        materialSearchBar.addTextChangeListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
-//            }
-//
-//            @Override
-//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//                //when user type text,then suggest list will be changed
-//                List<String> suggest=new ArrayList<String>();
-//                for (String search: suggestList){
-//                    if (search.toLowerCase().equals(materialSearchBar.getText().toLowerCase().toString()))
-//                        suggest.add(search);
-//                }
-//                materialSearchBar.setLastSuggestions(suggest);
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable editable) {
-//
-//            }
-//        });
-//        materialSearchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener(){
-//
-//            @Override
-//            public void onSearchStateChanged(boolean enabled) {
-//                //when search bar is closed restore original adapter
-//                if(!enabled)
-//                    recyclerView.setAdapter(adapter);
-//            }
-//
-//            @Override
-//            public void onSearchConfirmed(CharSequence text) {
-//                //when search finish and then show result of search
-//                startSearch(text);
-//            }
-//
-//            @Override
-//            public void onButtonClicked(int buttonCode) {
-//
-//            }
-//        });
-
     }
 
 
@@ -403,32 +356,6 @@ public class FoodList extends SwipeBackActivity {
         openGallery.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(openGallery,"Browse Image"),imgReq);
     }
-//    private void startSearch(CharSequence text) {
-//        searchAdapter=new FirebaseRecyclerAdapter<Food, FoodViewHolder>(
-//                Food.class,
-//                R.layout.food_item,
-//                FoodViewHolder.class,
-//                foodList.orderByChild("Name").equalTo(text.toString())
-//        ) {
-//            @Override
-//            protected void populateViewHolder(FoodViewHolder viewHolder, Food model, int position) {
-//                viewHolder.foodName.setText(model.getName());
-//                Picasso.with(getBaseContext()).load(model.getImage())
-//                        .into(viewHolder.foodImage);
-//                final Food local=model;
-//                viewHolder.setItemClickListener(new ItemClickListener() {
-//                    @Override
-//                    public void onClick(View view, int position, boolean isLongClick) {
-//                        //Starting new activity
-////                        Intent foodDetail=new Intent(FoodList.this,FoodDetail.class);
-////                        foodDetail.putExtra("FoodId",searchAdapter.getRef(position).getKey());
-////                        startActivity(foodDetail);
-//                    }
-//                });
-//            }
-//        };
-//        recyclerView.setAdapter(searchAdapter);
-//    }
 
     private void loadSuggest() {
         foodList.orderByChild("MenuId").equalTo(categoryId)
@@ -450,12 +377,14 @@ public class FoodList extends SwipeBackActivity {
     }
 
     private void loadList(String categoryId) {
-        adapter=new FirebaseRecyclerAdapter<Food, FoodViewHolder>(Food.class,
-                R.layout.food_item,
-                FoodViewHolder.class,
-                foodList.orderByChild("menuId").equalTo(categoryId)) {
+        Query query=foodList.orderByChild("menuId").equalTo(categoryId);
+
+        FirebaseRecyclerOptions<Food> options =new FirebaseRecyclerOptions.Builder<Food>()
+                .setQuery(query,Food.class)
+                .build();
+        adapter= new FirebaseRecyclerAdapter<Food, FoodViewHolder>(options) {
             @Override
-            protected void populateViewHolder(FoodViewHolder viewHolder, Food model, int position) {
+            protected void onBindViewHolder(@NonNull FoodViewHolder viewHolder, int position, @NonNull Food model) {
                 viewHolder.foodName.setText(model.getName());
                 Picasso.with(getBaseContext()).load(model.getImage())
                         .into(viewHolder.foodImage);
@@ -468,10 +397,25 @@ public class FoodList extends SwipeBackActivity {
 //                        foodDetail.putExtra("FoodId",adapter.getRef(position).getKey());
 //                        startActivity(foodDetail);
                     }
-                });
+                });}
+
+
+                @Override
+            public FoodViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View itemView=LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.food_item,parent,false);
+                return new FoodViewHolder(itemView);
             }
         };
+        adapter.startListening();
         adapter.notifyDataSetChanged();
         recyclerView.setAdapter(adapter);
+        recyclerView.getAdapter().notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        adapter.stopListening();
     }
 }

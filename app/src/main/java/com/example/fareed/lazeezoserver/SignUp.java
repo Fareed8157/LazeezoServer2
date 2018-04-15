@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
@@ -19,7 +20,7 @@ import com.liuguangqiang.swipeback.SwipeBackLayout;
 
 import br.com.simplepass.loading_button_lib.customViews.CircularProgressButton;
 
-public class SignUp extends SwipeBackActivity {
+public class SignUp extends AppCompatActivity {
 
     AutoCompleteTextView phone,name,pass;
     CircularProgressButton signUp;
@@ -27,7 +28,7 @@ public class SignUp extends SwipeBackActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signup);
-        setDragEdge(SwipeBackLayout.DragEdge.LEFT);
+        //setDragEdge(SwipeBackLayout.DragEdge.LEFT);
         signUp=(CircularProgressButton)findViewById(R.id.signUp);
         phone=(AutoCompleteTextView)findViewById(R.id.phone);
         name=(AutoCompleteTextView)findViewById(R.id.name);

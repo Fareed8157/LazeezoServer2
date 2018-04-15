@@ -13,16 +13,22 @@ import com.example.fareed.lazeezoserver.Remote.FCMRetrofitClient;
 import com.example.fareed.lazeezoserver.Remote.IGeoCoordinates;
 import com.example.fareed.lazeezoserver.Remote.RetrofitClient;
 
+import java.util.Calendar;
+import java.util.Locale;
+
 
 public class Common {
     public  static User currentUser;
     public  static Request currentRequest;
 
+    public static String topicName="News";
     public static final String fcmUrl="https://fcm.googleapis.com/";
     public static String MODIFY="Update";
     public static String REMOVE="Remove";
 
     public static final String baseUrl="https://maps.googleapis.com";
+    public static String PHONE_TEXT="userPhone";
+    public static String SHIPPER_TABLE="Shippers";
 
 
     @NonNull
@@ -45,19 +51,30 @@ public class Common {
     }
 
     public static Bitmap scaleBitmap(Bitmap bitmap,int newWidth, int newHeight){
-        Bitmap scaledBitmap = Bitmap.createBitmap(newWidth,newHeight,Bitmap.Config.ARGB_8888);
-        float scaleX=newWidth/(float)bitmap.getWidth();
-        float scaleY=newHeight/(float)bitmap.getHeight();
-        float pivotX=0,pivotY=0;
+        Bitmap scaledBitmap=null;
+        if(bitmap!=null){
+            scaledBitmap = Bitmap.createBitmap(newWidth,newHeight,Bitmap.Config.ARGB_8888);
+            float scaleX=newWidth/(float)bitmap.getWidth();
+            float scaleY=newHeight/(float)bitmap.getHeight();
+            float pivotX=0,pivotY=0;
 
-        Matrix scaleMatrix=new Matrix();
-        scaleMatrix.setScale(scaleX,scaleY,pivotX,pivotY);
+            Matrix scaleMatrix=new Matrix();
+            scaleMatrix.setScale(scaleX,scaleY,pivotX,pivotY);
 
-        Canvas canvas=new Canvas(scaledBitmap);
-        canvas.setMatrix(scaleMatrix);
-        canvas.drawBitmap(bitmap,0,0,new Paint(Paint.FILTER_BITMAP_FLAG));
+            Canvas canvas=new Canvas(scaledBitmap);
+            canvas.setMatrix(scaleMatrix);
+            canvas.drawBitmap(bitmap,0,0,new Paint(Paint.FILTER_BITMAP_FLAG));
 
+        }
         return scaledBitmap;
+    }
 
+    public static String getDate(long time){
+        Calendar calendar=Calendar.getInstance(Locale.ENGLISH);
+        calendar.setTimeInMillis(time);
+        StringBuilder date=new StringBuilder(
+                android.text.format.DateFormat.format("dd-MM-yyyy HH:mm",
+                        calendar).toString());
+        return date.toString();
     }
 }

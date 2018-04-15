@@ -30,8 +30,8 @@ public class MainActivity extends AppCompatActivity {
         l2.setAnimation(downtopup);
         gettingStarted=(Button)findViewById(R.id.gettingStarted);
         textView=(TextView)findViewById(R.id.slogan);
-        typeface=Typeface.createFromAsset(getAssets(),"fonts/tf.otf");
-        textView.setTypeface(typeface);
+//        typeface=Typeface.createFromAsset(getAssets(),"fonts/tf.otf");
+//        textView.setTypeface(typeface);
         gettingStarted.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -56,7 +56,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class TrackingOrder extends FragmentActivity implements OnMapReadyCallback,
+public class TrackingOrder extends FragmentActivity implements
+        OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -165,7 +166,8 @@ public class TrackingOrder extends FragmentActivity implements OnMapReadyCallbac
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(17.0f));
 
 
-                 //drawRounte(yourLocation,Common.currentRequest.getAddress());
+
+                 drawRounte(yourLocation,Common.currentRequest.getAddress());
 
             }else {
                // Log.i("displayLocation: ","Mylocation");
@@ -194,8 +196,8 @@ public class TrackingOrder extends FragmentActivity implements OnMapReadyCallbac
                                     .get("lng").toString();
                    LatLng orderLocation =new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
                    Drawable drawable=getResources().getDrawable(R.drawable.ic_shopping_cart_black_24dp);
-                   Bitmap bitmap=drawableToBitmap(drawable);
-                   //Bitmap bitmap= BitmapFactory.decodeResource(getApplicationContext().getResources(),R.drawable.ic_shopping_cart_black_24dp);
+                   //Bitmap bitmap=drawableToBitmap(drawable);
+                   Bitmap bitmap= BitmapFactory.decodeResource(getResources(),R.drawable.ship);
                    bitmap=Common.scaleBitmap(bitmap,70,70);
 
                    MarkerOptions marker=new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap))

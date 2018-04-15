@@ -2,6 +2,7 @@ package com.example.fareed.lazeezoserver;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,10 +12,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.fareed.lazeezoserver.Common.Common;
 import com.example.fareed.lazeezoserver.Interface.ItemClickListener;
+import com.example.fareed.lazeezoserver.Model.DataMessage;
 import com.example.fareed.lazeezoserver.Model.MyResponse;
 import com.example.fareed.lazeezoserver.Model.Notification;
 import com.example.fareed.lazeezoserver.Model.Order;
@@ -24,12 +27,17 @@ import com.example.fareed.lazeezoserver.Model.Token;
 import com.example.fareed.lazeezoserver.Remote.APIService;
 import com.example.fareed.lazeezoserver.ViewHolder.OrderViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.jaredrummler.materialspinner.MaterialSpinner;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -65,20 +73,34 @@ public class OrderStatus extends AppCompatActivity {
     }
 
     private void loadOrders() {
-        adapter=new FirebaseRecyclerAdapter<Request,OrderViewHolder>(
-                Request.class,
-                R.layout.order_layout,
-                OrderViewHolder.class,
-                requests
-        ){
+        //Query query=requests.orderByChild("phone").equalTo(Common.currentUser.getPhone());
 
+
+        FirebaseRecyclerOptions<Request> options =new FirebaseRecyclerOptions.Builder<Request>()
+                .setQuery(requests,Request.class)
+                .build();
+        adapter=new FirebaseRecyclerAdapter<Request, OrderViewHolder>(options) {
             @Override
-            protected void populateViewHolder(OrderViewHolder viewHolder, final Request model, final int position) {
+            protected void onBindViewHolder(@NonNull OrderViewHolder viewHolder, final int position, @NonNull final Request model) {
                 viewHolder.txtOrderId.setText(adapter.getRef(position).getKey());
                 viewHolder.txtOrderStatus.setText(Common.convertCodeToStatus(model.getStatus()));
                 viewHolder.txtOrderAddress.setText(model.getAddress());
                 viewHolder.txtOrderPhone.setText(model.getPhone());
+                viewHolder.txtOrderDate.setText(Common.getDate(Long.parseLong(adapter.getRef(position).getKey())));
 
+                viewHolder.edit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        floatingWinForUpdate(adapter.getRef(position).getKey(),adapter.getItem(position));
+                    }
+                });
+
+                viewHolder.remove.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        floatingWinForDel(adapter.getRef(position).getKey());
+                    }
+                });
 
                 viewHolder.edit.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -112,31 +134,121 @@ public class OrderStatus extends AppCompatActivity {
                         startActivity(trackingOrder);
                     }
                 });
-//                viewHolder.setItemClickListener(new ItemClickListener() {
-//                    @Override
-//                    public void onClick(View view, int position, boolean isLongClick) {
-//                        if(!isLongClick){
-//                            Intent trackingOrder=new Intent(OrderStatus.this,TrackingOrder.class);
-//                            Common.currentRequest=model;
-//                            startActivity(trackingOrder);
-//                        }
-//
-////                        else{
-////                            Intent orderDetail=new Intent(OrderStatus.this,OrderDetail.class);
-////                            Common.currentRequest=model;
-////                            orderDetail.putExtra("OrderId",adapter.getRef(position).getKey());
-////                            startActivity(orderDetail);
-////                        }
-//                    }
-//                });
+
+                viewHolder.detail.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent orderDetail=new Intent(OrderStatus.this,OrderDetail.class);
+                        Common.currentRequest=model;
+                        orderDetail.putExtra("OrderId",adapter.getRef(position).getKey());
+                        startActivity(orderDetail);
+                    }
+                });
+
+                viewHolder.direction.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent trackingOrder=new Intent(OrderStatus.this,TrackingOrder.class);
+                        Common.currentRequest=model;
+                        startActivity(trackingOrder);
+                    }
+                });
+            }
+
+            @Override
+            public OrderViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate( R.layout.order_layout, parent, false);
+                return new OrderViewHolder(view);
             }
         };
+//        adapter=new FirebaseRecyclerAdapter<Request,OrderViewHolder>(
+//                Request.class,
+//                R.layout.order_layout,
+//                OrderViewHolder.class,
+//                requests
+//        ){
+//
+//            @Override
+//            protected void populateViewHolder(OrderViewHolder viewHolder, final Request model, final int position) {
+//                viewHolder.txtOrderId.setText(adapter.getRef(position).getKey());
+//                viewHolder.txtOrderStatus.setText(Common.convertCodeToStatus(model.getStatus()));
+//                viewHolder.txtOrderAddress.setText(model.getAddress());
+//                viewHolder.txtOrderPhone.setText(model.getPhone());
+//
+//
+//                viewHolder.edit.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        floatingWinForUpdate(adapter.getRef(position).getKey(),adapter.getItem(position));
+//                    }
+//                });
+//
+//                viewHolder.remove.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        floatingWinForDel(adapter.getRef(position).getKey());
+//                    }
+//                });
+//
+//                viewHolder.detail.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        Intent orderDetail=new Intent(OrderStatus.this,OrderDetail.class);
+//                        Common.currentRequest=model;
+//                        orderDetail.putExtra("OrderId",adapter.getRef(position).getKey());
+//                        startActivity(orderDetail);
+//                    }
+//                });
+//
+//                viewHolder.direction.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        Intent trackingOrder=new Intent(OrderStatus.this,TrackingOrder.class);
+//                        Common.currentRequest=model;
+//                        startActivity(trackingOrder);
+//                    }
+//                });
+////                viewHolder.setItemClickListener(new ItemClickListener() {
+////                    @Override
+////                    public void onClick(View view, int position, boolean isLongClick) {
+////                        if(!isLongClick){
+////                            Intent trackingOrder=new Intent(OrderStatus.this,TrackingOrder.class);
+////                            Common.currentRequest=model;
+////                            startActivity(trackingOrder);
+////                        }
+////
+//////                        else{
+//////                            Intent orderDetail=new Intent(OrderStatus.this,OrderDetail.class);
+//////                            Common.currentRequest=model;
+//////                            orderDetail.putExtra("OrderId",adapter.getRef(position).getKey());
+//////                            startActivity(orderDetail);
+//////                        }
+////                    }
+////                });
+//            }
+//        };
+        adapter.startListening();
         adapter.notifyDataSetChanged();
         recyclerView.setAdapter(adapter);
 
     }
 
-//    @Override
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(adapter!=null){
+            adapter.startListening();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        adapter.stopListening();
+    }
+//
+//        @Override
 //    public boolean onContextItemSelected(MenuItem item) {
 //        if (item.getTitle().equals(Common.MODIFY))
 //            floatingWinForUpdate(adapter.getRef(item.getOrder()).getKey(),adapter.getItem(item.getOrder()));
@@ -194,10 +306,14 @@ public class OrderStatus extends AppCompatActivity {
                         for (DataSnapshot postSnapshot:dataSnapshot.getChildren()){
                             Token token=postSnapshot.getValue(Token.class);
 
-                            Notification notification=new Notification("Lazeezo","Your Order "+key+" was updated");
-                            Sender content=new Sender(token.getToken(),notification);
+//                            Notification notification=new Notification("Lazeezo","Your Order "+key+" was updated");
+//                            Sender content=new Sender(token.getToken(),notification);
 
-                            mService.sendNotification(content)
+                            Map<String,String> dataSend=new HashMap<>();
+                            dataSend.put("title","Lazeezo");
+                            dataSend.put("message","You Order '"+key+"' was updated");
+                            DataMessage dataMessage=new DataMessage(token.getToken(),dataSend);
+                            mService.sendNotification(dataMessage)
                                     .enqueue(new Callback<MyResponse>() {
                                         @Override
                                         public void onResponse(Call<MyResponse> call, Response<MyResponse> response) {

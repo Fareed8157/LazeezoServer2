@@ -16,7 +16,7 @@ import com.example.fareed.lazeezoserver.R;
 public class OrderViewHolder extends RecyclerView.ViewHolder {
 
 
-    public TextView txtOrderId,txtOrderStatus,txtOrderPhone,txtOrderAddress;
+    public TextView txtOrderId,txtOrderStatus,txtOrderPhone,txtOrderAddress,txtOrderDate;
     private ItemClickListener itemClickListener;
 
     public Button edit,remove,detail,direction;
@@ -28,6 +28,7 @@ public class OrderViewHolder extends RecyclerView.ViewHolder {
         txtOrderStatus=(TextView)itemView.findViewById(R.id.order_status);
         txtOrderPhone=(TextView)itemView.findViewById(R.id.order_phone);
         txtOrderAddress=(TextView)itemView.findViewById(R.id.order_address);
+        txtOrderDate=(TextView)itemView.findViewById(R.id.order_dateTime);
 
         edit=(Button)itemView.findViewById(R.id.btnEdit);
         remove=(Button)itemView.findViewById(R.id.btnRemove);
